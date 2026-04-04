@@ -1,35 +1,31 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import TrickService from '@/lib/services/trick-service';
+import type { TricksResponse } from '@/lib/types/trick';
 
-export async function GET(request: NextRequest) {
-  try {
-    // Google Drive file ID from the shared link
-    const fileId = '12m2jfAE2JQ_VMkAIerZILnb4S684uLM8';
-    
-    // Convert the Google Drive link to a direct download URL
-    const driveUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
-    
-    // Fetch the CSV file from Google Drive
-    const response = await fetch(driveUrl);
-    
-    if (!response.ok) {
-      return NextResponse.json(
-        { error: 'Failed to fetch CSV file from Google Drive' },
-        { status: response.status }
-      );
-    }
-    
-    // Get the raw content as string
-    const csvContent = await response.text();
-    
-    return NextResponse.json({
-      success: true,
-      data: csvContent,
-    });
-  } catch (error) {
-    console.error('Error fetching CSV:', error);
+/**
+ * GET /api/fetch-csv
+ * Fetch and parse tricks from configured CSV file
+ * 
+ * Returns: TricksResponse with tricks data or error
+ */
+export async function GET(): Promise<NextResponse<TricksResponse>> {
+  const result = await TrickService.getTricks();
+
+  if (result.success) {
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      {
+        success: true,
+        data: result.data,
+      } as TricksResponse,
+      { status: 200 }
     );
   }
+
+  return NextResponse.json(
+    {
+      success: false,
+      error: result.error,
+    } as TricksResponse,
+    { status: 500 }
+  );
 }
