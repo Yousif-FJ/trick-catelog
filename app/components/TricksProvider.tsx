@@ -2,7 +2,6 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import type { Trick, TricksResponse } from '@/lib/types/trick';
-import CacheService from '@/lib/services/cache-service';
 
 interface TricksContextType {
   tricks: Trick[];
@@ -19,7 +18,7 @@ export interface TricksProviderProps {
 }
 
 /**
- * Provider component for managing tricks state with automatic offline fallback
+ * Provider component for managing tricks state
  */
 export function TricksProvider({ children, apiUrl = '/api/fetch-csv' }: TricksProviderProps) {
   const [tricks, setTricks] = useState<Trick[]>([]);
@@ -36,25 +35,17 @@ export function TricksProvider({ children, apiUrl = '/api/fetch-csv' }: TricksPr
 
       if (data.success && data.data) {
         setTricks(data.data);
-        CacheService.saveTricksToCache(data.data);
       } else {
         throw new Error(data.error || 'Failed to fetch tricks');
       }
     } catch (err) {
       console.error('Error fetching tricks:', err);
-
-      // Fall back to cached data silently
-      const cachedTricks = CacheService.getTricksFromCache();
-      if (cachedTricks && cachedTricks.length > 0) {
-        setTricks(cachedTricks);
-      } else {
-        setError(
-          err instanceof Error
-            ? err.message
-            : 'Failed to load tricks'
-        );
-        setTricks([]);
-      }
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Failed to load tricks'
+      );
+      setTricks([]);
     } finally {
       setIsLoading(false);
     }
@@ -62,7 +53,7 @@ export function TricksProvider({ children, apiUrl = '/api/fetch-csv' }: TricksPr
 
   useEffect(() => {
     fetchTricks();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiUrl]);
 
   return (
