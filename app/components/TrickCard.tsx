@@ -19,6 +19,14 @@ export function TrickCard({ trick, onOpen }: TrickCardProps) {
     hard: 'bg-red-100 text-red-800',
   };
   const keywords = trick.keywords || [];
+  const peopleLabel =
+    trick.number_of_people === 'more'
+      ? 'a lot of people'
+      : trick.number_of_people === '1'
+        ? '1 person'
+        : trick.number_of_people
+          ? `${trick.number_of_people} people`
+          : null;
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
@@ -54,9 +62,9 @@ export function TrickCard({ trick, onOpen }: TrickCardProps) {
                 {trick.difficulty.charAt(0).toUpperCase() + trick.difficulty.slice(1)}
               </span>
             )}
-            {trick.number_of_people && (
+            {peopleLabel && (
               <span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                {trick.number_of_people} people
+                {peopleLabel}
               </span>
             )}
           </div>
