@@ -54,7 +54,7 @@ export function TrickDetailsView({ trick, onClose }: TrickDetailsViewProps) {
 
                 <div className="p-4 space-y-6">
                     {photos.length > 0 && (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 gap-3">
                             {photos.map((photoUrl, index) => (
                                 <div key={`${trick.id}-photo-${index}`} className="bg-gray-200 rounded-lg overflow-hidden">
                                     {/* eslint-disable-next-line @next/next/no-img-element */}
