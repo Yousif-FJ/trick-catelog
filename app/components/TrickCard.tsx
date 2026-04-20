@@ -5,18 +5,20 @@ import type { Trick } from '@/lib/types/trick';
 
 interface TrickCardProps {
   trick: Trick;
+  onOpen: (trick: Trick) => void;
 }
 
 /**
  * Individual trick card component
- * Displays trick information and photos
+ * Displays trick summary on the home screen
  */
-export function TrickCard({ trick }: TrickCardProps) {
+export function TrickCard({ trick, onOpen }: TrickCardProps) {
   const difficultyColors = {
     easy: 'bg-green-100 text-green-800',
     medium: 'bg-yellow-100 text-yellow-800',
     hard: 'bg-red-100 text-red-800',
   };
+  const keywords = trick.keywords || [];
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
@@ -42,22 +44,45 @@ export function TrickCard({ trick }: TrickCardProps) {
         {/* Title */}
         <h3 className="text-lg font-bold text-gray-900 mb-2">{trick.name}</h3>
 
-        {/* Difficulty badge */}
-        <div className="mb-3">
-          <span
-            className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${difficultyColors[trick.difficulty]}`}
-          >
-            {trick.difficulty.charAt(0).toUpperCase() + trick.difficulty.slice(1)}
-          </span>
-        </div>
+        {/* Badges */}
+        {(trick.difficulty || trick.number_of_people) && (
+          <div className="mb-3 flex flex-wrap gap-2">
+            {trick.difficulty && (
+              <span
+                className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${difficultyColors[trick.difficulty]}`}
+              >
+                {trick.difficulty.charAt(0).toUpperCase() + trick.difficulty.slice(1)}
+              </span>
+            )}
+            {trick.number_of_people && (
+              <span className="inline-block px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                {trick.number_of_people} people
+              </span>
+            )}
+          </div>
+        )}
 
-        {/* Instructions */}
-        <p className="text-gray-700 text-sm line-clamp-3 mb-3">{trick.instructions}</p>
+        {/* Keywords */}
+        {keywords.length > 0 && (
+          <div className="mb-4 flex flex-wrap gap-2">
+            {keywords.map((keyword) => (
+              <span
+                key={`${trick.id}-${keyword}`}
+                className="inline-block px-2 py-1 rounded bg-gray-100 text-gray-700 text-xs"
+              >
+                {keyword}
+              </span>
+            ))}
+          </div>
+        )}
 
-        {/* Metadata */}
-        <div className="text-xs text-gray-500 space-y-1">
-          {trick.id && <p>ID: {trick.id}</p>}
-        </div>
+        <button
+          type="button"
+          onClick={() => onOpen(trick)}
+          className="w-full px-4 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700"
+        >
+          Open trick
+        </button>
       </div>
     </div>
   );

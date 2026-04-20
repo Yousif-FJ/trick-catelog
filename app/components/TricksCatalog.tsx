@@ -1,27 +1,36 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { TrickCard } from './TrickCard';
 import { useTricks } from './TricksProvider';
-
-type FilterDifficulty = 'all' | 'easy' | 'medium' | 'hard';
+import { TrickFilters, type DifficultyFilter, type KeywordFilter, type PeopleFilter } from './TrickFilters';
+import { TrickDetailsView } from './TrickDetailsView';
+import type { Trick } from '@/lib/types/trick';
 
 /**
  * Main catalog component displaying tricks with filtering and sorting
  */
 export function TricksCatalog() {
   const { tricks, isLoading, error, refreshTricks } = useTricks();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterDifficulty, setFilterDifficulty] = useState<FilterDifficulty>('all');
+  const [filterDifficulty, setFilterDifficulty] = useState<DifficultyFilter>('all');
+  const [filterPeople, setFilterPeople] = useState<PeopleFilter>('all');
+  const [filterKeyword, setFilterKeyword] = useState<KeywordFilter>('all');
+  const [openTrick, setOpenTrick] = useState<Trick | null>(null);
+
+  const keywordOptions = useMemo(() => {
+    return Array.from(new Set(tricks.flatMap((trick) => trick.keywords || []))).sort((a, b) => a.localeCompare(b));
+  }, [tricks]);
 
   // Filter tricks
   const filteredTricks = tricks.filter((trick) => {
-    const matchesSearch =
-      trick.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      trick.instructions.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDifficulty =
       filterDifficulty === 'all' || trick.difficulty === filterDifficulty;
-    return matchesSearch && matchesDifficulty;
+    const matchesPeople =
+      filterPeople === 'all' || trick.number_of_people === filterPeople;
+    const matchesKeyword =
+      filterKeyword === 'all' || (trick.keywords || []).includes(filterKeyword);
+
+    return matchesDifficulty && matchesPeople && matchesKeyword;
   });
 
   return (
@@ -31,9 +40,11 @@ export function TricksCatalog() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Tricks Catalog</h1>
           <p className="text-gray-600">
-            Discover and learn amazing tricks
+            TaTSi trick bank
           </p>
         </div>
+
+        <TrickDetailsView trick={openTrick} onClose={() => setOpenTrick(null)} />
 
         {/* Status alerts */}
         {error && (
@@ -48,41 +59,20 @@ export function TricksCatalog() {
           </div>
         )}
 
-        {/* Controls */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Search */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Search tricks
-              </label>
-              <input
-                type="text"
-                placeholder="Search by name or instructions..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-
-            {/* Filter by difficulty */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Difficulty
-              </label>
-              <select
-                value={filterDifficulty}
-                onChange={(e) => setFilterDifficulty(e.target.value as FilterDifficulty)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="all">All difficulties</option>
-                <option value="easy">Easy</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
-              </select>
-            </div>
-          </div>
-        </div>
+        <TrickFilters
+          difficulty={filterDifficulty}
+          people={filterPeople}
+          keyword={filterKeyword}
+          keywordOptions={keywordOptions}
+          onDifficultyChange={setFilterDifficulty}
+          onPeopleChange={setFilterPeople}
+          onKeywordChange={setFilterKeyword}
+          onClear={() => {
+            setFilterDifficulty('all');
+            setFilterPeople('all');
+            setFilterKeyword('all');
+          }}
+        />
 
         {/* Results info */}
         <div className="mb-4 text-sm text-gray-600">
@@ -115,8 +105,9 @@ export function TricksCatalog() {
             <p className="text-gray-500">No tricks match your filters</p>
             <button
               onClick={() => {
-                setSearchTerm('');
                 setFilterDifficulty('all');
+                setFilterPeople('all');
+                setFilterKeyword('all');
               }}
               className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
@@ -129,7 +120,7 @@ export function TricksCatalog() {
         {!isLoading && filteredTricks.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredTricks.map((trick) => (
-              <TrickCard key={trick.id} trick={trick} />
+              <TrickCard key={trick.id} trick={trick} onOpen={setOpenTrick} />
             ))}
           </div>
         )}

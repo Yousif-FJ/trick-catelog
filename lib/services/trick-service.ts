@@ -1,4 +1,4 @@
-import type { Trick } from '../types/trick';
+import type { Trick, TrickDifficulty, TrickPeople } from '../types/trick';
 import { config } from '../config';
 import { ImageService } from './image-service';
 
@@ -8,6 +8,71 @@ type TrickResult =
 
 interface GoogleSheetsResponse {
   values?: string[][];
+}
+
+function optionalValue(value?: string): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.toLowerCase() === 'null') {
+    return undefined;
+  }
+
+  return trimmed;
+}
+
+function normalizeDifficulty(value?: string): TrickDifficulty | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  const normalized = value.toLowerCase();
+  if (normalized === 'easy' || normalized === 'medium' || normalized === 'hard') {
+    return normalized;
+  }
+  return undefined;
+}
+
+function normalizePeople(value?: string): TrickPeople | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  const normalized = value.toLowerCase();
+  if (
+    normalized === '1' ||
+    normalized === '2' ||
+    normalized === '3' ||
+    normalized === '4' ||
+    normalized === 'more'
+  ) {
+    return normalized;
+  }
+  return undefined;
+}
+
+function parseKeywords(value?: string): string[] | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  const keywords = value
+    .split(',')
+    .map((keyword: string) => keyword.trim())
+    .filter(Boolean);
+
+  return keywords.length > 0 ? keywords : undefined;
+}
+
+function signPhotoUrl(url?: string): string | undefined {
+  if (!url || !ImageService.isGoogleDriveUrl(url)) {
+    return url;
+  }
+
+  const signedUrl = ImageService.generateSignedUrl(url);
+  return signedUrl || url;
 }
 
 /**
@@ -54,33 +119,30 @@ export class TrickService {
       const headers = data.values[0].map((h: string) => h.trim().toLowerCase());
 
       // Parse data rows
-      const tricks: Trick[] = data.values.slice(1).map((row: string[]) => {
-        const obj: Record<string, string> = {};
-        headers.forEach((header: string, index: number) => {
-          obj[header] = row[index] || '';
+      const tricks: Trick[] = data.values
+        .slice(1)
+        .map((row: string[]) => {
+          const obj: Record<string, string> = {};
+          headers.forEach((header: string, index: number) => {
+            obj[header] = row[index] || '';
+          });
+
+          return {
+            id: optionalValue(obj.id) || '',
+            name: optionalValue(obj.name) || '',
+            difficulty: normalizeDifficulty(optionalValue(obj.difficulty)),
+            number_of_people: normalizePeople(optionalValue(obj.number_of_people)),
+            keywords: parseKeywords(optionalValue(obj.keywords)),
+            instructions: optionalValue(obj.instructions),
+            photo_0: signPhotoUrl(optionalValue(obj.photo_0)),
+            photo_1: signPhotoUrl(optionalValue(obj.photo_1)),
+            photo_2: signPhotoUrl(optionalValue(obj.photo_2)),
+            youtube_link: optionalValue(obj.youtube_link),
+          };
+        })
+        .filter((trick: Trick) => {
+          return trick.id && trick.name;
         });
-
-        // Sign Google Drive photo URL if it's a direct Google Drive link
-        let photo_0 = obj.photo_0;
-        if (photo_0 && ImageService.isGoogleDriveUrl(photo_0)) {
-          const signedUrl = ImageService.generateSignedUrl(photo_0);
-          if (signedUrl) {
-            photo_0 = signedUrl;
-          }
-        }
-
-        return {
-          id: obj.id,
-          name: obj.name,
-          difficulty: (obj.difficulty || 'medium') as 'easy' | 'medium' | 'hard',
-          instructions: obj.instructions,
-          photo_0,
-          createdAt: obj.createdat,
-          updatedAt: obj.updatedat,
-        };
-      }).filter((trick: Trick) => {
-        return trick.id && trick.name && trick.difficulty && trick.instructions && trick.photo_0;
-      });
 
       return {
         success: true,

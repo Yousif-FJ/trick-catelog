@@ -1,5 +1,7 @@
 # Tricks Catalog App
 
+App for TaTSi circus club in Tampere university, hosting a catalog of tricks. To make it easy to find inspiration.
+
 ### Installation
 
 ```bash
@@ -23,13 +25,26 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 4. **Start the app** - Run `pnpm dev`
 5. **Browse** - Search, filter, and learn tricks!
 
-**Column Details:**
+## Google sheet
 
-- `id` - Unique identifier for the trick
-- `name` - Name of the trick
-- `difficulty` - Level: `easy`, `medium`, or `hard`
-- `instructions` - Step-by-step instructions
-- `photo_0` - Google Drive photo URL
+Use Sheet1 with this exact header row:
+
+id, name, difficulty, number_of_people, keywords, instructions, photo_0, photo_1, photo_2, youtube_link
+
+Column details:
+
+- id: required, unique trick ID
+- name: required, trick name
+- difficulty: optional, one of easy, medium, hard
+- number_of_people: optional, one of 1, 2, 3, 4, more
+- keywords: optional, comma-separated text values
+- instructions: optional, shown in the open trick view
+- photo_0: optional, image URL (Google Drive URL or file ID supported)
+- photo_1: optional, image URL
+- photo_2: optional, image URL
+- youtube_link: optional, YouTube URL
+
+Only id and name are required. All other fields can be empty.
 
 ## Scripts
 
@@ -40,16 +55,6 @@ pnpm start      # Start production server
 pnpm lint       # Run ESLint
 ```
 
-## Offline Support
-
-The app automatically caches data on first load:
-
-1. **First Load**: Fetches tricks from your CSV URL
-2. **Storage**: Saves data to browser's localStorage (24-hour TTL)
-3. **Offline**: Uses cached data when network unavailable
-4. **Indicator**: UI shows status (online/offline/cached)
-5. **Refresh**: Manual refresh button to update data
-
 ## 📦 Deployment
 
 ### Vercel
@@ -58,14 +63,6 @@ The app automatically caches data on first load:
 vercel deploy
 ```
 
-Then set environment variables in Vercel
+Then set environment variables in Vercel.
 
-### Other Platforms
-
-1. Run `pnpm build`
-2. Set environment variables
-3. Start with `pnpm start`
-
-**Ready to get started?** Check out the [Quick Start Guide](./QUICKSTART.md)!
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Or use the UI to link the repository to Vercel.
