@@ -21,7 +21,7 @@ export function TrickCard({ trick, onOpen }: TrickCardProps) {
   const keywords = trick.keywords || [];
   const peopleLabel =
     trick.number_of_people === 'more'
-      ? 'a lot of people'
+      ? 'A lot of people'
       : trick.number_of_people === '1'
         ? '1 person'
         : trick.number_of_people
