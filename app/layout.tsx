@@ -3,9 +3,8 @@ import "./globals.css";
 import { TricksProvider } from "./components/TricksProvider";
 
 export const metadata: Metadata = {
-  title: "Tricks Catalog - Learn Amazing Tricks",
-  description: "A comprehensive catalog of tricks with step-by-step instructions and photos. Works offline with cached data.",
-  keywords: "tricks, catalog, learn, tutorial, offline",
+  title: "TaTSi bank",
+  description: "TaTSi catalog of tricks",
   manifest: "/manifest.json",
 };
 
